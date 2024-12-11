@@ -26,18 +26,16 @@ h = 15
 # Each element in the t_rad list corresponds to the radius of that element (in)
 class single_point:
     def run(t_len_tot, t_rad):
-        # Determines total length of track
+        
+        # Finding total length of track
         track = np.sum(t_len_tot)
 
-        # discretizing track, n = number of elements, dx = length of element (inches)
+        # discretizing track
         n = 500
         dx = track/n
 
         # nodespace
         nds = np.linspace(0,track,int(n+1))
-
-        # Maximum acceleration determined by the grip limit of the tires
-        a = 1.2
 
         # Determining maximum lateral acceleration for every turn
         t_vel = np.sqrt(a*t_rad)
@@ -45,30 +43,37 @@ class single_point:
         # List showing radius at every node. Used to calculate maximum tangential acceleration
         nd_rad = np.zeros(int(n+1))
 
-        # Each line sets the maximum velocity for each 
-        for i in np.arange(len(t_len_tot)):
-            nd_rad[int(np.ceil(np.sum(t_len_tot[0:i])/dx)):int(np.ceil(np.sum(t_len_tot[0:i+1])/dx))] = t_rad[i]
-        t_rad[-1] = t_rad[-2]
+        nd_rad[0:int(np.ceil(t_len_tot[0]/dx))] = t_rad[0]
+        nd_rad[int(np.ceil(t_len_tot[0]/dx)):int(np.ceil(np.sum(t_len_tot[0:2])/dx))] = t_rad[1]
+        nd_rad[int(np.ceil(np.sum(t_len_tot[0:2])/dx)):int(np.ceil(np.sum(t_len_tot[0:3])/dx))] = t_rad[2]
+        nd_rad[int(np.ceil((np.sum(t_len_tot[0:3]))/dx)):] = t_rad[3]
 
         # Determine the speed if the car accelerated for the entire length of the traffic, starting from 0 mph at node 0
         v1 = np.zeros(int(n+1))
 
-        for i in np.arange(len(t_len_tot)):
-            v1[int(np.ceil(np.sum(t_len_tot[0:i])/dx)):int(np.ceil(np.sum(t_len_tot[0:i+1])/dx))] = t_vel[i]
+        v1[0:int(np.ceil(t_len_tot[0]/dx))] = t_vel[0]
+        v1[int(np.ceil(t_len_tot[0]/dx)):int(np.ceil(np.sum(t_len_tot[0:2])/dx))] = t_vel[1]
+        v1[int(np.ceil(np.sum(t_len_tot[0:2])/dx)):int(np.ceil(np.sum(t_len_tot[0:3])/dx))] = t_vel[2]
+        v1[int(np.ceil((np.sum(t_len_tot[0:3]))/dx)):] = t_vel[3]
         v1[0] = 0
-        v1[-1] = v1[-2]
 
         for i in np.arange(n):
-            a_tan = np.sqrt(abs(a**2 - ((v1[i]**4)/(nd_rad[i]**2))))
+            # Below section determines maximum longitudinal acceleration (a_tan) by selecting whichever is lower, engine accel. limit or tire grip limit as explained in word doc.
+            a_tan_tire = np.sqrt(abs(a**2 - ((v1[i]**4)/(nd_rad[i]**2))))
+            a_tan_engne = a_array[int(round(v1[int(i)]/17.6))]
+            if a_tan_tire > a_tan_engne:
+                a_tan = a_tan_engne
+            else:
+                a_tan = a_tan_tire
             if (np.sqrt(v1[int(i)]**2 + 2*a_tan*dx) < v1[int(i+1)]) or (v1[int(i+1)] == 0.):
                 v1[int(i+1)] = np.sqrt(v1[int(i)]**2 + 2*a_tan*dx)
 
         # Determine the speed if the car deaccelerated for the entire length of the traffic, ending at 0 mph at node n
         v2 = np.zeros(int(n+1))
-
-        for i in np.arange(len(t_len_tot)):
-            v2[int(np.ceil(np.sum(t_len_tot[0:i])/dx)):int(np.ceil(np.sum(t_len_tot[0:i+1])/dx))] = t_vel[i]
-        v2[-1] = v2[-2]
+        v2[0:int(np.ceil(t_len_tot[0]/dx))] = t_vel[0]
+        v2[int(np.ceil(t_len_tot[0]/dx)):int(np.ceil(np.sum(t_len_tot[0:2])/dx))] = t_vel[1]
+        v2[int(np.ceil(np.sum(t_len_tot[0:2])/dx)):int(np.ceil(np.sum(t_len_tot[0:3])/dx))] = t_vel[2]
+        v2[int(np.ceil((np.sum(t_len_tot[0:3]))/dx)):] = t_vel[3]
 
         for i in np.arange(1,n+1):
             a_tan = np.sqrt(abs(a**2 - ((v2[-i]**4)/(nd_rad[-i]**2))))
@@ -77,17 +82,17 @@ class single_point:
 
 
         # Determine which value of the two above lists is lowest. This list is the theoretical velocity at each node to satisfy the stated assumptions
-        v4 = np.zeros(int(n+1))
+        v3 = np.zeros(int(n+1))
         for i in np.arange(int(n+1)):
             if v1[i] < v2 [i]:
-                v4[i] = (v1[int(i)])
+                v3[i] = (v1[int(i)])
             else:
-                v4[i] = (v2[int(i)])
+                v3[i] = (v2[int(i)])
 
         # Determining the total time it takes to travel the track by rewriting the equation v1 = v0 + a*t
         t = 0
         for i in np.arange(len(v2)-1):
-            t += np.abs(v4[i+1]-v4[i])/a
-        print(f"total time to travel straight {round(t,2)} seconds")
+            t += np.abs(v3[i+1]-v3[i])/a
+    
         
         return nds, v4
