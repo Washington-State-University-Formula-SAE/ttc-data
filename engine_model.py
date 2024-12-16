@@ -6,9 +6,11 @@ from IPython.display import display
 
 
 
-# Importing Engine Data
+# Importing Engine Data from Excel using PANDAS
 cbf650r_engine_data_file_path = "C:/Users/maxwe/Downloads/FSAE/2023-2024 Car/Repo/engine_data.xlsx"
 cbf650r_engine_data = pd.read_excel(cbf650r_engine_data_file_path)
+
+# Importing Car Model from car_model using PICKLE
 
 # total weight of car (minus driver) (lbm)
 w_car = 569
@@ -134,7 +136,7 @@ plt.ylabel('Acceleration Potential (in/s^2) ')
 plt.show()
         
         
-# Define a sample dictionary
+# Defining the vel_array
 data = {'vel_array': vel_array,
         'a_array': a_array,}
 
