@@ -11,21 +11,21 @@ cbf650r_engine_data_file_path = "C:/Users/maxwe/Downloads/FSAE/2023-2024 Car/Rep
 cbf650r_engine_data = pd.read_excel(cbf650r_engine_data_file_path)
 
 # Importing Car Model from car_model using PICKLE
+with open('C:/Users/maxwe/Downloads/FSAE/2023-2024 Car/Repo/car_model.pkl', 'rb') as f:
+    car_var = pickle.load(f)
 
 # total weight of car (minus driver) (lbm)
-w_car = 569
-# weight of driver (lbm)
-w_driver = 130
+W_T = car_var['W_T']
 # weight bias, if less than 0.5, then the rear of the car will have more weight, if more than 0.5, then the front will have more weight
-w_bias = 0.507
+w_bias = car_var['W_bias']
 # length of wheelbase (in)
-l = 60
+l = car_var['l']
 # vertical center of gravity (in)
-h = 15
+h = car_var['h']
 # setting pi as a number
 pi = 3.14159
 # tire grip limit (G's)
-a = 1.2
+a = car_var['tire_a']
 # tire grip limit (in/s^2)
 a_ins = a*32.2*12
 
@@ -107,7 +107,7 @@ for i in np.arange(len(g_f_array)):
     f_array[i]= max(g_f_array[i,:]) # getting rid of any force values that aren't the highest
 
 # divides force by car mass to get longitudinal acceleration potential for a given velociy
-a_array = f_array/(w_car+w_driver) # acceleration in G's
+a_array = f_array/(W_T) # acceleration in G's
 
 # replaces any value over the tire limit with the tire limit. 
 # Values of zero are also converted the lowest RPM force value available for 1st gear.
@@ -115,7 +115,7 @@ for i in np.arange(len(a_array)):
     if a_array[i] > a:
         a_array[i] = a
     if a_array[i] == 0:
-        a_array[i] = g1_f[0]/(w_car+w_driver)
+        a_array[i] = g1_f[0]/(W_T)
 
 # accel values converted from G's to in/s^2
 a_array = a_array*32.17*12
@@ -136,11 +136,9 @@ plt.ylabel('Acceleration Potential (in/s^2) ')
 plt.show()
         
         
-# Defining the vel_array
+# Defining the vel_array and a_array in a dictionary
 data = {'vel_array': vel_array,
         'a_array': a_array,}
-
-print(len(vel_array), len(a_array))
 
 # Pickling the dictionary
 with open('C:/Users/maxwe/Downloads/FSAE/2023-2024 Car/Repo/engine_data.pkl', 'wb') as f:
