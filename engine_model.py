@@ -143,3 +143,6 @@ data = {'vel_array': vel_array,
 # Pickling the dictionary
 with open('C:/Users/maxwe/Downloads/FSAE/2023-2024 Car/Repo/engine_data.pkl', 'wb') as f:
     pickle.dump(data, f)
+
+# Max Acceleration of car
+print(f"The Maximum Acceleration of the car is {np.max(a_array)/32.17/12} G's at {vel_array[a_array.index(np.max(a_array))]} mph")
