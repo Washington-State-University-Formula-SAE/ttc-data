@@ -29,12 +29,12 @@ class two_step_curve():
         self.Ax = Ax
         self.Ay = Ay
         # defines the direction (in radians) of the center of curve A from its starting position
-        self.A_theta = np.deg2rad(A_theta + 270)
+        self.A_theta = A_theta + 3*np.pi/2
         # defines the ending position of the curve
         self.Bx = Bx
         self.By = By
         # defines the direction (in radians) of the center of curve B from its ending position
-        self.B_theta = np.deg2rad(B_theta + 90)
+        self.B_theta = B_theta + np.pi/2
 
         self.A_B_ratio = 2**scaler
 
@@ -59,21 +59,21 @@ class two_step_curve():
         length_A2, length_B2, arc_angle_A2, arc_angle_B2 = self.get_arc_length(r2)
 
         if length_A1 + length_B1 < length_A2 + length_B2:
-            self.arc_length_A = length_A1
-            self.arc_length_B = length_B1
-            self.arc_angle_A = arc_angle_A1
-            self.arc_angle_B = arc_angle_B1
-            self.radius = r1
-            self.radius_A = abs(r1 * self.A_B_ratio)
-            self.radius_B = abs(r1)
+            self.arc_length_A = float(length_A1)
+            self.arc_length_B = float(length_B1)
+            self.arc_angle_A = float(arc_angle_A1)
+            self.arc_angle_B = float(arc_angle_B1)
+            self.radius = float(r1)
+            self.radius_A = float(abs(r1 * self.A_B_ratio))
+            self.radius_B = float(abs(r1))
         else:
-            self.arc_length_A = length_A2
-            self.arc_length_B = length_B2
-            self.arc_angle_A = arc_angle_A2
-            self.arc_angle_B = arc_angle_B2
-            self.radius = r2
-            self.radius_A = abs(r2 * self.A_B_ratio)
-            self.radius_B = abs(r2)
+            self.arc_length_A = float(length_A2)
+            self.arc_length_B = float(length_B2)
+            self.arc_angle_A = float(arc_angle_A2)
+            self.arc_angle_B = float(arc_angle_B2)
+            self.radius = float(r2)
+            self.radius_A = float(abs(r2 * self.A_B_ratio))
+            self.radius_B = float(abs(r2))
 
     
     def get_arc_length(self, r):
@@ -192,80 +192,146 @@ class track():
 
     def new_track(self):
         self.angles = []
+        self.radius_adjustment = np.zeros(self.points+1)
 
         for i in range(len(self.points_x)):
-            j = i - 1
-            if j < 0:
-                j = self.points
+            j = (i-1)%self.points
             start_angle = np.arccos((self.points_x[i] - self.points_x[j]) / ((self.points_x[i] - self.points_x[j])**2 + (self.points_y[i] - self.points_y[j])**2)**0.5)
             if self.points_y[j] > self.points_y[i]:
                 start_angle = 2*np.pi - start_angle
-            start_angle = np.rad2deg(start_angle)
+            #start_angle = np.rad2deg(start_angle)
             self.angles.append(start_angle)
         
+        self.create_segments()
+
+    def create_segments(self):
         self.track_segments = []
         for i in range(len(self.angles)-1):
-            self.track_segments.append(two_step_curve(self.points_x[i], self.points_y[i], self.angles[i], self.points_x[i+1], self.points_y[i+1], self.angles[i+1], 0))
-        self.track_segments.append(two_step_curve(self.points_x[self.points], self.points_y[self.points], self.angles[self.points], self.points_x[0], self.points_y[0], self.angles[0], 0))
+            self.track_segments.append(two_step_curve(self.points_x[i], self.points_y[i], self.angles[i], self.points_x[i+1], self.points_y[i+1], self.angles[i+1], self.radius_adjustment[i]))
+        self.track_segments.append(two_step_curve(self.points_x[-1], self.points_y[-1], self.angles[-1], self.points_x[0], self.points_y[0], self.angles[0], self.radius_adjustment[-1]))
+
+        self.arc_lengths = []
+        self.arc_radii = []
+        for i in self.track_segments:
+            self.arc_lengths.append(i.arc_length_A)
+            self.arc_lengths.append(i.arc_length_B)
+            self.arc_radii.append(i.radius_A)
+            self.arc_radii.append(i.radius_B)
+
+        self.track_length = np.sum(self.arc_lengths)
+
 
     def plot_track(self):
         for i in self.track_segments:
             i.plot_curve()
-    
-    def run_sim(self, sim_type):
-        arc_lengths = []
-        arc_radii = []
-        for i in self.track_segments:
-            arc_lengths.append(i.arc_length_A)
-            arc_lengths.append(i.arc_length_B)
-            arc_radii.append(i.radius_A)
-            arc_radii.append(i.radius_B)
 
+    def run_sim(self, sim_type):
+        #self.update_arc_info()
         match sim_type:
-            case 'single_point':
-                return lapsim.single_point.run(np.array(arc_lengths), np.array(arc_radii))
+            case 'single point':
+                sim = lapsim.single_point(self.arc_lengths, self.arc_radii)   
+                return sim.run()
 
     def plot_sim(self, sim_type):
-        v, s = self.run_sim(sim_type)
-        plt.plot(v, s)
+        s, v, t = self.run_sim(sim_type)
+        plt.plot(s, v)
+        return t
     
-    '''def new_track(self):
-        angle_sums = []
-        for i in range(self.points - 1):
-            angle_sums.append(np.arccos((self.points_x[i + 1] - self.points_x[i])/((self.points_x[i + 1] - self.points_x[i])**2 + (self.points_y[i + 1] - self.points_y[i])**2)**0.5) * 2)
-            if self.points_y[i] > self.points_y[i + 1]:
-                angle_sums[i] = 2*np.pi - angle_sums[i]
-        
-        angle_sums.append(np.arccos((self.points_x[0] - self.points_x[self.points-1])/((self.points_x[0] - self.points_x[self.points-1])**2 + (self.points_y[0] - self.points_y[self.points-1])**2)**0.5) * 2)
-        if self.points_y[self.points-1] > self.points_y[0]:
-            angle_sums[self.points-1] = 2*np.pi - angle_sums[self.points-1]
-        
-        angle_sums = np.array(angle_sums)
-        
-        angle_matrix = []
-        for i in range(self.points-1):
-            angle_matrix.append(np.linspace(0, 0, self.points))
-            angle_matrix[i][i] = 1
-            angle_matrix[i][i+1] = 1
-            #angle_matrix[i][self.points] = angle_sums[i]
-        
-        angle_matrix.append(np.linspace(0, 0, self.points))
-        angle_matrix[self.points-1][self.points-1] = 1
-        angle_matrix[self.points-1][0] = 1
-        #angle_matrix[self.points-1][self.points] = angle_sums[self.points-1]
-        
-        #angle_matrix = np.matrix(angle_matrix)
+    def adjust_course(self, itterations):
+        best_angles = [] # stores whichever track angles provided the best results across all itterations
+        best_radii = []  # stores whichever radius adjustments have provided the best results across all itterations
+        best_time = np.inf # stores the lowest lap time across all simulation results
 
-        print(angle_sums)
+        for i in range(itterations):
 
-        print(np.linalg.solve(angle_matrix, angle_sums))
+            # runs the sim
+            sim = lapsim.single_point(self.arc_lengths, self.arc_radii)
+            nds, v3, t = sim.run()
 
-        self.angles = []'''
+            # checks if the current itteration preforms better than the best itteration so far
+            if t < best_time:
+                # updating best itteration info
+                best_angles = np.array(self.angles)
+                best_radii = np.array(self.radius_adjustment)
+                best_time = t
 
-        #print(angle_matrix)
+            # this next portion of the code in the for loop below goes through every node angle and reavulates the lap time
+            # with a slight change in each angle to determine how changing the angle effects the lap time. All the lap times
+            # with the new angles are stored in an array and then the angles of the entire track are adjusted using a gradient
+            # descent algorithm.
+            angle_step = 0.1
+            movement_step = 0.05 # this variable determines the magnitude of how much the angles will change with each itteration
+            dt = np.zeros(len(self.angles))
+            for i in range(1, len(self.angles)-1):
 
+                new_arc_radii = [0, 0, 0, 0]    # stores the arc radii of the new segments
+                new_arc_lengths = [0, 0, 0, 0]  # stores arc lengths of new segments
 
+                # generates a two step curve with the new angle at the current node for the first two segments
+                new_two_step_arc = two_step_curve(self.points_x[i-1], self.points_y[i-1], self.angles[i-1], self.points_x[i], self.points_y[i], self.angles[i]+angle_step, self.radius_adjustment[i-1])
+                new_arc_radii[0] = new_two_step_arc.radius_A
+                new_arc_radii[1] = new_two_step_arc.radius_B
+                new_arc_lengths[0] = new_two_step_arc.arc_length_A
+                new_arc_lengths[1] = new_two_step_arc.arc_length_B
 
-        #for i in angle:
-        #    print(i)
-        #print(angle)
+                # generates a two step curve with the new angle at the current node for the last two segments
+                new_two_step_arc = two_step_curve(self.points_x[i], self.points_y[i], self.angles[i]+angle_step, self.points_x[(i+1)%(self.points+1)], self.points_y[(i+1)%(self.points+1)], self.angles[(i+1)%(self.points+1)], self.radius_adjustment[i])
+                new_arc_radii[2] = new_two_step_arc.radius_A
+                new_arc_radii[3] = new_two_step_arc.radius_B
+                new_arc_lengths[2] = new_two_step_arc.arc_length_A               
+                new_arc_lengths[3] = new_two_step_arc.arc_length_B
+
+                starting_arc = i * 2 - 2
+                if starting_arc < 0:
+                    starting_arc = 0
+                
+                ending_arc = i * 2 + 2
+                if ending_arc > len(self.arc_lengths)+1:
+                    ending_arc = len(self.arc_lengths)
+                
+                # evaluates the change in lap time when incorporating the segments with the new angle
+                # dt[i] is an approximation of the partial derivative of the lap time in respect to angle i
+                # this makes dt an approximation of the gradient of the lap time in respect to the node angles
+                dt[i] = sim.arcEvaluator(starting_arc, ending_arc, new_arc_lengths, new_arc_radii)
+                
+            print(t)
+
+            # finds the magnitude of the gradient vector dt
+            mag_dt = (np.sum(dt**2))**0.5
+
+            # moves all angles in the direction of gradient vector dt but magnitude of movement_step
+            self.angles += dt/mag_dt*movement_step
+
+            self.create_segments()
+
+            # below is the same algorithm as the one above but adjusting the radius_adjustment perameter of the track instead of the node angles
+            radius_step = 0.02
+            movement_step = 0.015
+            dt = np.zeros(len(self.radius_adjustment))
+            for i in range(0, len(self.angles)-1):
+
+                new_arc_radii = [0, 0]
+                new_arc_lengths = [0, 0]
+
+                new_two_step_arc = two_step_curve(self.points_x[i], self.points_y[i], self.angles[i], self.points_x[i+1], self.points_y[i+1], self.angles[i+1], self.radius_adjustment[i] + radius_step)
+                new_arc_radii[0] = new_two_step_arc.radius_A
+                new_arc_radii[1] = new_two_step_arc.radius_B
+                new_arc_lengths[0] = new_two_step_arc.arc_length_A               
+                new_arc_lengths[1] = new_two_step_arc.arc_length_B
+
+                starting_arc = i * 2
+                ending_arc = i * 2 + 2
+                    
+                dt[i] = sim.arcEvaluator(starting_arc, ending_arc, new_arc_lengths, new_arc_radii)
+                
+
+            mag_dt = (np.sum(dt**2))**0.5
+            self.radius_adjustment += dt/mag_dt*movement_step
+
+            self.create_segments()
+
+        # sets all track perameters to the stored peramters which provided the best results
+        self.angles = best_angles
+        self.radius_adjustment = best_radii
+        print(best_time)
+        self.create_segments()
