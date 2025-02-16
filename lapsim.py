@@ -3,8 +3,11 @@ from matplotlib import pyplot as plt
 import pickle
 pi = np.pi
 
-# Importing Car Model from car_model using PICKLE
-with open('car_model.pkl', 'rb') as f:
+# Importing Car Model from car_model using PICKLE. Make sure your own file path goes into "pkl_fl_pth"
+pkl_fl_pth_car = 'C:/Users/maxwe/Downloads/FSAE/2023-2024 Car/Repo/car_model.pkl'
+pkl_fl_pth_eng = 'C:/Users/maxwe/Downloads/FSAE/2023-2024 Car/Repo/engine_data.pkl'
+
+with open(pkl_fl_pth_car, 'rb') as f:
     car_model = pickle.load(f)
 
 # total weight of car (minus driver) (lbm)
@@ -21,7 +24,7 @@ a = car_model['tire_a']
 a_ins = a*32.2*12
 
 # Importing Engine Data from engine_data using PICKLE
-with open('engine_data.pkl', 'rb') as f:
+with open(pkl_fl_pth_eng, 'rb') as f:
     engine_data = pickle.load(f)
 
 a_array = engine_data['a_array']
