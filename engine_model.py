@@ -11,7 +11,7 @@ cbf650r_engine_data_file_path = "C:/Users/maxwe/Downloads/FSAE/2023-2024 Car/Rep
 cbf650r_engine_data = pd.read_excel(cbf650r_engine_data_file_path)
 
 # Importing Car Model from car_model using PICKLE
-with open('C:/Users/maxwe/Downloads/FSAE/2023-2024 Car/Repo/car_model.pkl', 'rb') as f:
+with open('C:/Users/maxwe/Downloads/FSAE/2023-2024 Car/Repo/73_car_model.pkl', 'rb') as f:
     car_var = pickle.load(f)
 
 # total weight of car (minus driver) (lbm)
@@ -38,15 +38,15 @@ def ave_cln(x,y):
     y_ave = []
     for i in np.arange(len(x_ave)):
         j = x_ave[i]
-        if j+1 in x_ave:
-            y_ave.append(np.average(y[x_ave.index(j):x_ave.index(j+1)-1]))
+        if j+2 in x_ave:
+            y_ave.append(np.average(y[x_ave.index(j):x_ave.index(j+2)-2]))
         else:
             y_ave.append(np.average(y[x_ave.index(j):]))
 
     # Cleaning Process
     x_ave_cln = []
     y_ave_cln = []
-    for i in np.arange(len(x_ave)-3): # The last 3 data points aren't included because they break the simulator
+    for i in np.arange(len(x_ave)):
             if x_ave[i] not in x_ave_cln:
                 x_ave_cln.append(x_ave[i])
             if y_ave[i] not in y_ave_cln:
@@ -106,30 +106,16 @@ f_array = np.zeros((int(max(g6_vel))))
 for i in np.arange(len(g_f_array)):
     f_array[i]= max(g_f_array[i,:]) # getting rid of any force values that aren't the highest
 
-# divides force by car mass to get longitudinal acceleration potential for a given velociy
-a_array = f_array/(W_T) # acceleration in G's
+g1f = g1_f[0] # this is the lowest force value from 1st gear, its used in the car specific models
 
-# replaces any value over the tire limit with the tire limit. 
-# Values of zero are also converted the lowest RPM force value available for 1st gear.
-for i in np.arange(len(a_array)):
-    if a_array[i] > a:
-        a_array[i] = a
-    if a_array[i] == 0:
-        a_array[i] = g1_f[0]/(W_T)
 
-# accel values converted from G's to in/s^2
-a_array = a_array*32.17*12
 
-# Ensuring car can't accelerate past max speed:
-a_array = list(a_array)
-
-a_array += [0,0,0,0,0]
 
 # Defining the velocity array
-vel_array = np.arange(len(a_array))
+vel_array = np.arange(len(f_array))
 
 # Plots the acceleration potential
-plt.plot(vel_array, a_array)
+plt.plot(vel_array, f_array)
 plt.title('Acceleration Potential vs. speed')
 plt.xlabel('Speed of Car (mph)')
 plt.ylabel('Acceleration Potential (in/s^2) ')
@@ -137,12 +123,9 @@ plt.show()
         
         
 # Defining the vel_array and a_array in a dictionary
-data = {'vel_array': vel_array,
-        'a_array': a_array,}
+data = {'f_array': f_array,
+        'gear1_force' : g1f}
 
 # Pickling the dictionary
-with open('C:/Users/maxwe/Downloads/FSAE/2023-2024 Car/Repo/engine_data.pkl', 'wb') as f:
+with open('C:/Users/maxwe/Downloads/FSAE/2023-2024 Car/Repo/engine_model.pkl', 'wb') as f:
     pickle.dump(data, f)
-
-# Max Acceleration of car
-print(f"The Maximum Acceleration of the car is {np.max(a_array)/32.17/12} G's at {vel_array[a_array.index(np.max(a_array))]} mph")
