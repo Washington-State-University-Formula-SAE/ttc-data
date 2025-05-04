@@ -332,102 +332,102 @@ class track():
                 
             print(t)
 
-#             # finds the magnitude of the gradient vector dt
-#             mag_dt = (np.sum(dt**2))**0.5
+            # finds the magnitude of the gradient vector dt
+            mag_dt = (np.sum(dt**2))**0.5
 
-#             # moves all angles in the direction of gradient vector dt but magnitude of movement_step
-#             self.angles += dt/mag_dt*movement_step
+            # moves all angles in the direction of gradient vector dt but magnitude of movement_step
+            self.angles += dt/mag_dt*movement_step
 
-#             self.create_segments()
+            self.create_segments()
 
-#             # below is the same algorithm as the one above but adjusting the radius_adjustment perameter of the track instead of the node angles
-#             radius_step = 0.02
-#             movement_step = 0.015
-#             dt = np.zeros(len(self.radius_adjustment))
-#             for i in range(0, len(self.angles)-1):
+            # below is the same algorithm as the one above but adjusting the radius_adjustment perameter of the track instead of the node angles
+            radius_step = 0.02
+            movement_step = 0.015
+            dt = np.zeros(len(self.radius_adjustment))
+            for i in range(0, len(self.angles)-1):
 
-# #                 new_arc_radii = [0, 0]
-# #                 new_arc_lengths = [0, 0]
+#                 new_arc_radii = [0, 0]
+#                 new_arc_lengths = [0, 0]
 
-#                 new_two_step_arc = two_step_curve(self.points_x[i], self.points_y[i], self.angles[i], self.points_x[i+1], self.points_y[i+1], self.angles[i+1], self.radius_adjustment[i] + radius_step)
-#                 new_arc_radii[0] = new_two_step_arc.radius_A
-#                 new_arc_radii[1] = new_two_step_arc.radius_B
-#                 new_arc_lengths[0] = new_two_step_arc.arc_length_A               
-#                 new_arc_lengths[1] = new_two_step_arc.arc_length_B
+                new_two_step_arc = two_step_curve(self.points_x[i], self.points_y[i], self.angles[i], self.points_x[i+1], self.points_y[i+1], self.angles[i+1], self.radius_adjustment[i] + radius_step)
+                new_arc_radii[0] = new_two_step_arc.radius_A
+                new_arc_radii[1] = new_two_step_arc.radius_B
+                new_arc_lengths[0] = new_two_step_arc.arc_length_A               
+                new_arc_lengths[1] = new_two_step_arc.arc_length_B
 
-#                 starting_arc = i * 2
-#                 ending_arc = i * 2 + 2
+                starting_arc = i * 2
+                ending_arc = i * 2 + 2
                     
-#                 dt[i] = sim.arcEvaluator(starting_arc, ending_arc, new_arc_lengths, new_arc_radii)
+                dt[i] = sim.arcEvaluator(starting_arc, ending_arc, new_arc_lengths, new_arc_radii)
                 
 
-#             mag_dt = (np.sum(dt**2))**0.5
-#             self.radius_adjustment += dt/mag_dt*movement_step
+            mag_dt = (np.sum(dt**2))**0.5
+            self.radius_adjustment += dt/mag_dt*movement_step
 
 
 
-#             gate_step = 0.03
-#             movement_step = 0.07
-#             og_step = movement_step
-#             dt = np.zeros(len(self.gate_impact))
-#             for i in range(0, len(self.angles)):
-#                 new_arc_radii = [0, 0, 0, 0]    # stores the arc radii of the new segments
-#                 new_arc_lengths = [0, 0, 0, 0]  # stores arc lengths of new segments
-#                 new_x = self.gate_x1[i]*(self.gate_impact[i]+gate_step) + self.gate_x2[i]*(1-self.gate_impact[i]-gate_step)
-#                 new_y = self.gate_y1[i]*(self.gate_impact[i]+gate_step) + self.gate_y2[i]*(1-self.gate_impact[i]-gate_step)
+            gate_step = 0.03
+            movement_step = 0.07
+            og_step = movement_step
+            dt = np.zeros(len(self.gate_impact))
+            for i in range(0, len(self.angles)):
+                new_arc_radii = [0, 0, 0, 0]    # stores the arc radii of the new segments
+                new_arc_lengths = [0, 0, 0, 0]  # stores arc lengths of new segments
+                new_x = self.gate_x1[i]*(self.gate_impact[i]+gate_step) + self.gate_x2[i]*(1-self.gate_impact[i]-gate_step)
+                new_y = self.gate_y1[i]*(self.gate_impact[i]+gate_step) + self.gate_y2[i]*(1-self.gate_impact[i]-gate_step)
               
-#                 # generates a two step curve with the new angle at the current node for the first two segments
-#                 if i >= 1:
-#                     new_two_step_arc = two_step_curve(self.points_x[i-1], self.points_y[i-1], self.angles[i-1], new_x, new_y, self.angles[i], self.radius_adjustment[i-1])
-#                     new_arc_radii[0] = new_two_step_arc.radius_A
-#                     new_arc_radii[1] = new_two_step_arc.radius_B
-#                     new_arc_lengths[0] = new_two_step_arc.arc_length_A
-#                     new_arc_lengths[1] = new_two_step_arc.arc_length_B
+                # generates a two step curve with the new angle at the current node for the first two segments
+                if i >= 1:
+                    new_two_step_arc = two_step_curve(self.points_x[i-1], self.points_y[i-1], self.angles[i-1], new_x, new_y, self.angles[i], self.radius_adjustment[i-1])
+                    new_arc_radii[0] = new_two_step_arc.radius_A
+                    new_arc_radii[1] = new_two_step_arc.radius_B
+                    new_arc_lengths[0] = new_two_step_arc.arc_length_A
+                    new_arc_lengths[1] = new_two_step_arc.arc_length_B
 
-#                 # generates a two step curve with the new angle at the current node for the last two segments
-#                 if i <= len(self.angles)-2:
-#                     new_two_step_arc = two_step_curve(new_x, new_y, self.angles[i], self.points_x[(i+1)%(self.points+1)], self.points_y[(i+1)%(self.points+1)], self.angles[(i+1)%(self.points+1)], self.radius_adjustment[i])
-#                     new_arc_radii[2] = new_two_step_arc.radius_A
-#                     new_arc_radii[3] = new_two_step_arc.radius_B
-#                     new_arc_lengths[2] = new_two_step_arc.arc_length_A               
-#                     new_arc_lengths[3] = new_two_step_arc.arc_length_B
+                # generates a two step curve with the new angle at the current node for the last two segments
+                if i <= len(self.angles)-2:
+                    new_two_step_arc = two_step_curve(new_x, new_y, self.angles[i], self.points_x[(i+1)%(self.points+1)], self.points_y[(i+1)%(self.points+1)], self.angles[(i+1)%(self.points+1)], self.radius_adjustment[i])
+                    new_arc_radii[2] = new_two_step_arc.radius_A
+                    new_arc_radii[3] = new_two_step_arc.radius_B
+                    new_arc_lengths[2] = new_two_step_arc.arc_length_A               
+                    new_arc_lengths[3] = new_two_step_arc.arc_length_B
 
-#                 starting_arc = i * 2 - 2
-#                 if starting_arc < 0:
-#                     starting_arc = 0
-#                     new_arc_lengths = new_arc_lengths[2:4]
-#                     new_arc_radii = new_arc_radii[2:4]
+                starting_arc = i * 2 - 2
+                if starting_arc < 0:
+                    starting_arc = 0
+                    new_arc_lengths = new_arc_lengths[2:4]
+                    new_arc_radii = new_arc_radii[2:4]
                 
-#                 ending_arc = i * 2 + 2
-#                 if ending_arc > len(self.arc_lengths):
-#                     ending_arc = len(self.arc_lengths)
-#                     new_arc_lengths = new_arc_lengths[0:2]
-#                     new_arc_radii = new_arc_radii[0:2]'''
+                ending_arc = i * 2 + 2
+                if ending_arc > len(self.arc_lengths):
+                    ending_arc = len(self.arc_lengths)
+                    new_arc_lengths = new_arc_lengths[0:2]
+                    new_arc_radii = new_arc_radii[0:2]
                 
-            #     # evaluates the change in lap time when incorporating the segments with the new angle
-            #     # dt[i] is an approximation of the partial derivative of the lap time in respect to angle i
-            #     # this makes dt an approximation of the gradient of the lap time in respect to the node angles
-            #     dt[i] = sim.arcEvaluator(starting_arc, ending_arc, new_arc_lengths, new_arc_radii)
+                # evaluates the change in lap time when incorporating the segments with the new angle
+                # dt[i] is an approximation of the partial derivative of the lap time in respect to angle i
+                # this makes dt an approximation of the gradient of the lap time in respect to the node angles
+                dt[i] = sim.arcEvaluator(starting_arc, ending_arc, new_arc_lengths, new_arc_radii)
 
-            #     if dt[i] > 0 and self.gate_impact[i] >= 1:
-            #         dt[i] = 0
-            #         movement_step -= og_step / len(self.gate_impact)
-            #     elif dt[i] < 0 and self.gate_impact[i] <= 0:
-            #         dt[i] = 0
-            #         movement_step -= og_step / len(self.gate_impact)
+                if dt[i] > 0 and self.gate_impact[i] >= 1:
+                    dt[i] = 0
+                    movement_step -= og_step / len(self.gate_impact)
+                elif dt[i] < 0 and self.gate_impact[i] <= 0:
+                    dt[i] = 0
+                    movement_step -= og_step / len(self.gate_impact)
                 
 
-            # mag_dt = (np.sum(dt**2))**0.5
-            # for i in range(len(self.gate_impact)):
-            #     self.gate_impact[i] += dt[i]/mag_dt*movement_step
-            #     if self.gate_impact[i] > 1:
-            #         self.gate_impact[i] = 1
-            #     elif self.gate_impact[i] < 0:
-            #         self.gate_impact[i] = 0
+            mag_dt = (np.sum(dt**2))**0.5
+            for i in range(len(self.gate_impact)):
+                self.gate_impact[i] += dt[i]/mag_dt*movement_step
+                if self.gate_impact[i] > 1:
+                    self.gate_impact[i] = 1
+                elif self.gate_impact[i] < 0:
+                    self.gate_impact[i] = 0
 
         # sets all track parameters to the stored peramters which provided the best results
         self.angles = best_angles
-        # self.radius_adjustment = best_radii
-        # self.gate_impact = best_gates
+        self.radius_adjustment = best_radii
+        self.gate_impact = best_gates
         print(best_time)
         self.create_segments()
